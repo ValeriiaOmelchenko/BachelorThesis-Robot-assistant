@@ -18,7 +18,7 @@ int delayTimeDHT = 2000;
 long previousTimeDHT = 0;
 float humi = 0;
 float temp = 0;
-SoftwareSerial hc06(15,14);
+SoftwareSerial hc06(14,15);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 DHT dht(DHTPIN, DHTTYPE);
 Servo rightServo;
@@ -82,7 +82,7 @@ void setup()
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, LOW);
 
-//  lcd.begin();
+  lcd.begin();
   lcd.backlight();
   lcd.clear();
   lcd.createChar(0, leftHalf);
@@ -98,7 +98,6 @@ void setup()
   leftServo.write(0);
 
 Serial.begin(9600);
-Serial.println("enter AT");
 hc06.begin(9600);
 
 
@@ -185,43 +184,13 @@ void ears_move(){
   leftServo.write(val);
 }
 
-void scanBaudrate() {
-  unsigned long bauds[12] = {300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 74880, 115200, 230400, 250000};
-  for (int i = 0; i < 12; i++) {
-    hc06.begin(bauds[i]);
-    delay(10);
-    Serial.print(F("Baudrate "));
-    Serial.println(bauds[i]);
-    command("AT", 2000);
 
-  }
-}
-String command(const char *toSend, unsigned long milliseconds) {
-  String result;
-  Serial.print("Sending: ");
-  Serial.println(toSend);
-  hc06.print(toSend);
-  unsigned long startTime = millis();
-  Serial.print(F("Received: "));
-  while (millis() - startTime < milliseconds) {
-    if (hc06.available()) {
-      char c = hc06.read();
-      Serial.write(c);
-      result += c;  // append to the result string
-    }
-  }
-  Serial.println();  // new line after timeout.
-  return result;
-}
+
+
 void loop()
 {
   //TEST
-   Serial.println("AT"); //Надсилаємо команду "AT"
-  delay(500); //Чекаємо 500 мілісекунд
-  while (Serial.available() > 0) {
-    String response = Serial.readString(); //Отримуємо відповідь від модуля
-    Serial.print(response); //Виводимо відповідь в Serial Monitor
-  }
+  
   //TEST
   ears_move();
   delay(200);
