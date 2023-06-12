@@ -20,6 +20,7 @@ float humi = 0;
 float temp = 0;
 float gasValue = 0;
 bool alarmState = 0;
+char data;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 DHT dht(DHTPIN, DHTTYPE);
 Servo rightServo;
@@ -99,6 +100,7 @@ void setup()
   leftServo.write(0);
 
   Serial.begin(9600);
+  Serial3.begin(9600);
 
 
 
@@ -168,21 +170,31 @@ void emotion_blink() {
   }
 }
 
-void climat_reader() {
+void temp_reader() {
   if (nowTime - previousTimeSensor > delayTimeSensor) {
-    previousTimeSensor = millis();
-    humi = dht.readHumidity();
     temp = dht.readTemperature();
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Temperature:");
+    lcd.print(temp);
+    Serial3.print(temp);
+    previousTimeSensor = millis();
+  }
+}
+
+void humi_reader() {
+  if (nowTime - previousTimeSensor > delayTimeSensor) {
+    humi = dht.readHumidity();
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Humidity:");
     lcd.print(humi);
-    lcd.setCursor(0, 1);
-    lcd.print("Temperature:");
-    lcd.print(temp);
-
+    Serial3.print(humi);
+    previousTimeSensor = millis();
   }
 }
+
+
 void ears_move() {
   byte val = random(10, 90);
   rightServo.write(val);
@@ -197,6 +209,7 @@ void gas_alarm() {
       alarmState = 1;
       lcd.clear();
       lcd.print("GAS ALARM!!!");
+      Serial3.print('D');
     }
     else {
       lcd.clear();
@@ -210,12 +223,27 @@ void gas_alarm() {
 void loop()
 {
   //TEST
-  Serial.print(gasValue);
-  Serial.print("\t");
-  Serial.println(alarmState);
-
-  //TEST
+  move_stop();
+  if (Serial3.available()) {
+    data = Serial3.read();
+    switch (data) {
+      case 'F':
+        move_forward();
+      case 'B':
+        move_back();
+      case 'L':
+        move_left();
+      case 'R':
+        move_right();
+      case 'T':
+        temp_reader();
+      case 'H':
+        humi_reader();
+    }
+  }
   gas_alarm();
+  //TEST
+
   ears_move();
   delay(200);
   emotion_normal();
