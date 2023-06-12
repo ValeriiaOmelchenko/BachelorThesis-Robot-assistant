@@ -1,4 +1,3 @@
-#include <SoftwareSerial.h>
 #include <Servo.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
@@ -10,15 +9,17 @@
 #define IN3 5
 #define IN4 6
 #define DHTTYPE DHT11
+#define GAS A0
 
 long nowTime = 0;
 int delayTime = 10;
 long previousTime = 0;
-int delayTimeDHT = 2000;
-long previousTimeDHT = 0;
+int delayTimeSensor = 2000;
+long previousTimeSensor = 0;
 float humi = 0;
 float temp = 0;
-SoftwareSerial hc06(14,15);
+float gasValue = 0;
+bool alarmState = 0;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 DHT dht(DHTPIN, DHTTYPE);
 Servo rightServo;
@@ -82,7 +83,7 @@ void setup()
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, LOW);
 
-  lcd.begin();
+  lcd.init();
   lcd.backlight();
   lcd.clear();
   lcd.createChar(0, leftHalf);
@@ -97,8 +98,8 @@ void setup()
   rightServo.write(0);
   leftServo.write(0);
 
-Serial.begin(9600);
-hc06.begin(9600);
+  Serial.begin(9600);
+
 
 
 }
@@ -137,35 +138,39 @@ void move_stop() {
 }
 
 void emotion_normal() {
-   lcd.clear();
-  lcd.setCursor(5, 0);
-  lcd.write(0);
-  lcd.write(1);
-  lcd.setCursor(10, 0);
-  lcd.write(0);
-  lcd.write(1);
-  lcd.setCursor(8, 1);
-  lcd.write(2);
+  if (alarmState == 0) {
+    lcd.clear();
+    lcd.setCursor(5, 0);
+    lcd.write(0);
+    lcd.write(1);
+    lcd.setCursor(10, 0);
+    lcd.write(0);
+    lcd.write(1);
+    lcd.setCursor(8, 1);
+    lcd.write(2);
+  }
 }
 void emotion_blink() {
-   lcd.clear();
-  emotion_normal();
-  delay(500);
-  lcd.setCursor(5, 0);
-  lcd.print("/");
-  lcd.write(3);
-  lcd.setCursor(10, 0);
-  lcd.print("/");
-  lcd.write(3);
-  lcd.setCursor(8, 1);
-  lcd.write(2);
-  delay(500);
-  emotion_normal();
+  if (alarmState == 0) {
+    lcd.clear();
+    emotion_normal();
+    delay(500);
+    lcd.setCursor(5, 0);
+    lcd.print("/");
+    lcd.write(3);
+    lcd.setCursor(10, 0);
+    lcd.print("/");
+    lcd.write(3);
+    lcd.setCursor(8, 1);
+    lcd.write(2);
+    delay(500);
+    emotion_normal();
+  }
 }
 
-void climat_reader(){
-  if (nowTime - previousTimeDHT > delayTimeDHT) {
-    previousTimeDHT = millis();
+void climat_reader() {
+  if (nowTime - previousTimeSensor > delayTimeSensor) {
+    previousTimeSensor = millis();
     humi = dht.readHumidity();
     temp = dht.readTemperature();
     lcd.clear();
@@ -175,23 +180,42 @@ void climat_reader(){
     lcd.setCursor(0, 1);
     lcd.print("Temperature:");
     lcd.print(temp);
-    delay(2000);
+
   }
 }
-void ears_move(){
-  byte val = random(10,90);
+void ears_move() {
+  byte val = random(10, 90);
   rightServo.write(val);
   leftServo.write(val);
 }
 
+void gas_alarm() {
+  if (nowTime - previousTimeSensor > delayTimeSensor) {
+    previousTimeSensor = millis();
+    gasValue = analogRead(GAS);
+    if (gasValue > 250) {
+      alarmState = 1;
+      lcd.clear();
+      lcd.print("GAS ALARM!!!");
+    }
+    else {
+      lcd.clear();
+      alarmState = 0;
+    }
+  }
 
+}
 
 
 void loop()
 {
   //TEST
-  
+  Serial.print(gasValue);
+  Serial.print("\t");
+  Serial.println(alarmState);
+
   //TEST
+  gas_alarm();
   ears_move();
   delay(200);
   emotion_normal();
