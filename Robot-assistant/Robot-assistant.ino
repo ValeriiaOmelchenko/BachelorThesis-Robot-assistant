@@ -14,8 +14,8 @@
 long nowTime = 0;
 int delayTime = 10;
 long previousTime = 0;
-int delayTimeSensor = 2000;
-long previousTimeSensor = 0;
+int delayTimeGas = 2000;
+long previousTimeGas = 0;
 float humi = 0;
 float temp = 0;
 float gasValue = 0;
@@ -171,27 +171,25 @@ void emotion_blink() {
 }
 
 void temp_reader() {
-  if (nowTime - previousTimeSensor > delayTimeSensor) {
     temp = dht.readTemperature();
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Temperature:");
     lcd.print(temp);
     Serial3.print(temp);
-    previousTimeSensor = millis();
-  }
+    delay(4000);
 }
 
 void humi_reader() {
-  if (nowTime - previousTimeSensor > delayTimeSensor) {
+ 
     humi = dht.readHumidity();
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Humidity:");
     lcd.print(humi);
     Serial3.print(humi);
-    previousTimeSensor = millis();
-  }
+    delay(4000);
+  
 }
 
 
@@ -202,10 +200,10 @@ void ears_move() {
 }
 
 void gas_alarm() {
-  if (nowTime - previousTimeSensor > delayTimeSensor) {
-    previousTimeSensor = millis();
+  if (nowTime - previousTimeGas > delayTimeGas) {
+    previousTimeGas = millis();
     gasValue = analogRead(GAS);
-    if (gasValue > 250) {
+    if (gasValue > 350) {
       alarmState = 1;
       lcd.clear();
       lcd.print("GAS ALARM!!!");
@@ -243,7 +241,7 @@ void loop()
   }
   gas_alarm();
   //TEST
-
+Serial.println(gasValue);
   ears_move();
   delay(200);
   emotion_normal();
