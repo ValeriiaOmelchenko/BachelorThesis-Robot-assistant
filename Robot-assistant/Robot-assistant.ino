@@ -3,6 +3,7 @@
 #include <LiquidCrystal_I2C.h>
 #include "DHT.h"
 
+
 #define DHTPIN 2
 #define IN1 3
 #define IN2 4
@@ -171,25 +172,27 @@ void emotion_blink() {
 }
 
 void temp_reader() {
-    temp = dht.readTemperature();
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Temperature:");
-    lcd.print(temp);
-    Serial3.print(temp);
-    delay(4000);
+  temp = dht.readTemperature();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Temperature:");
+  lcd.print(temp);
+  Serial3.print(0);
+  Serial3.print(temp);
+  delay(2000);
+  
 }
 
 void humi_reader() {
- 
-    humi = dht.readHumidity();
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Humidity:");
-    lcd.print(humi);
-    Serial3.print(humi);
-    delay(4000);
-  
+  humi = dht.readHumidity();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Humidity:");
+  lcd.print(humi);
+  Serial3.print(0);
+  Serial3.print(humi);
+  delay(2000);
+
 }
 
 
@@ -203,7 +206,7 @@ void gas_alarm() {
   if (nowTime - previousTimeGas > delayTimeGas) {
     previousTimeGas = millis();
     gasValue = analogRead(GAS);
-    if (gasValue > 350) {
+    if (gasValue > 450) {
       alarmState = 1;
       lcd.clear();
       lcd.print("GAS ALARM!!!");
@@ -220,30 +223,33 @@ void gas_alarm() {
 
 void loop()
 {
-  //TEST
-  move_stop();
+
   if (Serial3.available()) {
     data = Serial3.read();
-    switch (data) {
-      case 'F':
-        move_forward();
-      case 'B':
-        move_back();
-      case 'L':
-        move_left();
-      case 'R':
-        move_right();
-      case 'T':
-        temp_reader();
-      case 'H':
-        humi_reader();
-    }
+    if (data == 'F') {
+    move_forward();
+  } else if (data == 'B') {
+    move_back();
+  } else if (data == 'L') {
+    move_left();
+  } else if (data == 'R') {
+    move_right();
+  } else if (data == 'T') {
+    temp_reader();
+  } else if (data == 'H') {
+    humi_reader();
+  }else if (data == 'S') {
+    move_stop();
   }
+  }
+  
+  
   gas_alarm();
-  //TEST
-Serial.println(gasValue);
+  Serial.print(data);
+  Serial.print("\t");
+  Serial.println(gasValue);
   ears_move();
-  delay(200);
+  delay(400);
   emotion_normal();
   nowTime = millis();
   if (nowTime - previousTime > delayTime) {
