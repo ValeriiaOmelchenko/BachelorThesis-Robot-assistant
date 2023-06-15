@@ -1,4 +1,4 @@
-#include <Servo.h>
+
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include "DHT.h"
@@ -24,8 +24,7 @@ bool alarmState = 0;
 char data;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 DHT dht(DHTPIN, DHTTYPE);
-Servo rightServo;
-Servo leftServo;
+
 
 byte leftHalf[] = {
 
@@ -94,11 +93,6 @@ void setup()
   lcd.createChar(3, line);
 
   dht.begin();
-
-  rightServo.attach(7);
-  leftServo.attach(8);
-  rightServo.write(0);
-  leftServo.write(0);
 
   Serial.begin(9600);
   Serial3.begin(9600);
@@ -196,12 +190,6 @@ void humi_reader() {
 }
 
 
-void ears_move() {
-  byte val = random(10, 90);
-  rightServo.write(val);
-  leftServo.write(val);
-}
-
 void gas_alarm() {
   if (nowTime - previousTimeGas > delayTimeGas) {
     previousTimeGas = millis();
@@ -242,13 +230,11 @@ void loop()
     move_stop();
   }
   }
-  
-  
+   
   gas_alarm();
   Serial.print(data);
   Serial.print("\t");
   Serial.println(gasValue);
-  ears_move();
   delay(400);
   emotion_normal();
   nowTime = millis();
